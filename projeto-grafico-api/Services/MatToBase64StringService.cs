@@ -24,7 +24,11 @@ namespace projeto_grafico_api.Services
 
             var fileBytes = File.ReadAllBytes(filePath);
 
-            return Convert.ToBase64String(fileBytes);
+            var base64String = Convert.ToBase64String(fileBytes);
+
+            File.Delete(filePath);
+
+            return "data:image/jpeg;base64," + base64String;
         }
     }
 }
