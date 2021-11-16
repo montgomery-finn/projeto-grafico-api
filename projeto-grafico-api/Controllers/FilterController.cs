@@ -31,7 +31,7 @@ namespace projeto_grafico_api.Controllers
         }
 
         [HttpPost]
-        public string BilateralFilter(FilterDTO dto)
+        public string Filter(FilterDTO dto)
         {   
             var image = _base64StringToMatService.Execute(dto.base64Image);
 

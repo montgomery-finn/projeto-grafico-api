@@ -11,43 +11,44 @@ namespace projeto_grafico_api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class BinarizationController : Controller
+    public class MorphologyController : Controller
     {
         private readonly IMatToBase64StringService _matToBase64StringService;
         private readonly IBase64StringToMatService _base64StringToMatService;
-        public BinarizationController(IMatToBase64StringService matToBase64StringService,
+        public MorphologyController(IMatToBase64StringService matToBase64StringService,
                                     IBase64StringToMatService base64StringToMatService)
         {
             _matToBase64StringService = matToBase64StringService;
             _base64StringToMatService = base64StringToMatService;
         }
 
-        public class BinarizationDTO
+        public enum EMorphology
+        {
+            Open,
+            Close
+        }
+
+        public class MorphologyDTO
         {
             public string base64Image { get; set; }
-            public string threshold { get; set; }
+            public string morphology { get; set; }
         }
 
         [HttpPost]
-        public string BilateralFilter(BinarizationDTO dto)
+        public string BilateralFilter(MorphologyDTO dto)
         {   
             var image = _base64StringToMatService.Execute(dto.base64Image);
 
-            Mat grayScaleImage = new Mat();
-            CvInvoke.CvtColor(image, grayScaleImage, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
+            var morphology = (EMorphology)Convert.ToInt32(dto.morphology);
 
-            var thresholdValue = String.IsNullOrEmpty(dto.threshold) ? 0 : Convert.ToInt32(dto.threshold);
-            Mat thresholdImage = new Mat();
-            if (thresholdValue == 0)
-            {
-                CvInvoke.Threshold(grayScaleImage, thresholdImage, 0, 255, Emgu.CV.CvEnum.ThresholdType.Binary | Emgu.CV.CvEnum.ThresholdType.Otsu);
-            }
-            else
-            {
-                CvInvoke.Threshold(grayScaleImage, thresholdImage, thresholdValue, 255, Emgu.CV.CvEnum.ThresholdType.Binary);
-            }
+            Mat morphologyImage = new Mat();
 
-            var response = _matToBase64StringService.Execute(thresholdImage);
+            var structuringElement = CvInvoke.GetStructuringElement(Emgu.CV.CvEnum.ElementShape.Rectangle, new System.Drawing.Size(3,3), new System.Drawing.Point(-1, -1));
+           
+            CvInvoke.MorphologyEx(image, morphologyImage, morphology == EMorphology.Open ? Emgu.CV.CvEnum.MorphOp.Open : Emgu.CV.CvEnum.MorphOp.Close,
+                structuringElement, new System.Drawing.Point(-1, -1), 1, Emgu.CV.CvEnum.BorderType.Default, CvInvoke.MorphologyDefaultBorderValue);
+
+            var response = _matToBase64StringService.Execute(morphologyImage);
 
             return response;
         }

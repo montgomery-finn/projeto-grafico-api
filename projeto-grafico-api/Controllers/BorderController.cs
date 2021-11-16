@@ -30,7 +30,7 @@ namespace projeto_grafico_api.Controllers
         }
 
         [HttpPost]
-        public string BilateralFilter(BorderDTO dto)
+        public string Border(BorderDTO dto)
         {   
             var image = _base64StringToMatService.Execute(dto.base64Image);
 
